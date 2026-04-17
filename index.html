@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIREstarter — Your Free FIRE Planning Tool</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d1a;color:#f0f0f0;font-family:'DM Sans',sans-serif;min-height:100vh}
+input[type=range]{-webkit-appearance:none;height:5px;border-radius:99px;background:#1a1a2e;width:100%}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer;border:2px solid #0d0d1a;background:#e8c547}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#1a1a2e}
+::-webkit-scrollbar-thumb{background:#2d2d4a;border-radius:99px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.header{padding:26px 0 20px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}
+.header-left .eyebrow{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#e8c547;margin-bottom:6px}
+.header-left h1{font-size:24px;font-weight:800;color:#f0f0f0;line-height:1}
+.header-right .total{font-size:26px;font-weight:800;color:#e8c547;font-family:'DM Mono',monospace;margin-bottom:5px;text-align:right}
+.saved{font-size:11px;color:#3a3a5a;display:flex;align-items:center;justify-content:flex-end;gap:5px;transition:color .3s}
+.saved.on{color:#6ee7b7}
+.layout{display:grid;grid-template-columns:250px 1fr;gap:24px}
+.sidebar{display:flex;flex-direction:column;gap:14px;position:sticky;top:20px;max-height:calc(100vh - 40px);overflow-y:auto;padding-right:4px}
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:22px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#e8c547;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(232,197,71,.2)}
+.step-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.step-num{width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.step-title{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6a6a8a;margin-bottom:4px}
+.field .note{font-size:11px;color:#4a4a6a;margin-bottom:4px;line-height:1.5}
+.input-wrap{display:flex;align-items:center;background:#1a1a2e;border:1px solid #2d2d4a;border-radius:8px;overflow:hidden}
+.input-pre{padding:8px 10px;color:#e8c547;font-weight:700;font-size:13px;border-right:1px solid #2d2d4a;flex-shrink:0}
+.input-wrap input[type=number]{flex:1;background:transparent;border:none;outline:none;color:#f0f0f0;font-size:14px;font-family:'DM Mono',monospace;padding:8px 10px}
+.input-suf{padding:8px 10px;color:#6a6a8a;font-size:12px;flex-shrink:0}
+.statgrid{display:grid;gap:12px;margin-bottom:20px}
+.statgrid.g4{grid-template-columns:repeat(4,1fr)}
+.statgrid.g5{grid-template-columns:repeat(5,1fr)}
+.statgrid.g3{grid-template-columns:repeat(3,1fr)}
+.statbox{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px 18px}
+.statbox .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6a6a8a;margin-bottom:5px}
+.statbox .val{font-size:22px;font-weight:800;font-family:'DM Mono',monospace;line-height:1}
+.statbox .sub{font-size:11px;color:#5a5a7a;margin-top:4px}
+.pbar-wrap{height:8px;background:#1a1a2e;border-radius:99px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:99px;transition:width .5s ease}
+.toggle-outer{width:32px;height:18px;border-radius:99px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-inner{position:absolute;top:2px;width:14px;height:14px;border-radius:99px;background:#fff;transition:left .2s}
+.tabs-wrap{margin-bottom:22px}
+.tabs{display:flex;gap:3px;background:rgba(255,255,255,0.03);padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,0.06)}
+.tab-btn{flex:1;padding:8px 4px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;transition:all .2s;color:#6a6a8a;background:transparent}
+.tab-btn.active-pic{background:#e8c547;color:#0d0d1a}
+.tab-btn.active-deep{background:#a78bfa;color:#0d0d1a}
+.tab-labels{display:flex;justify-content:space-between;margin-top:5px;padding:0 4px}
+.tab-labels span{font-size:10px;color:#2a2a3a;letter-spacing:.05em;text-transform:uppercase}
+.infobox{padding:12px 14px;border-radius:8px;font-size:12px;line-height:1.7;margin-top:10px}
+.scenario-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px}
+.scenario-card{border-radius:16px;padding:20px;text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)}
+.scenario-card .sc-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.scenario-card .sc-year{font-size:34px;font-weight:800;font-family:'DM Mono',monospace}
+.scenario-card .sc-sub{font-size:12px;color:#8a8a8a;margin-top:4px}
+.math-toggle-btn{display:flex;align-items:center;gap:8px;background:transparent;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:7px 13px;cursor:pointer;color:#5a5a7a;font-size:12px;font-family:'DM Sans',sans-serif}
+.math-panel{margin-top:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;display:none}
+.math-panel.open{display:block}
+.math-item{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.math-item:last-child{border-bottom:none}
+.math-q{font-size:13px;font-weight:700;color:#f0f0f0;margin-bottom:5px}
+.math-a{font-size:12px;color:#8a8a8a;line-height:1.7;margin-bottom:5px}
+.math-src{font-size:11px;color:#4a4a6a;font-style:italic}
+.bucket-presets{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.preset-btn{padding:10px 8px;border-radius:10px;border:1px solid #2d2d4a;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;transition:all .2s;background:transparent}
+.preset-btn.active{border-color:#e8c547;background:rgba(232,197,71,.08)}
+.preset-btn .p-label{font-size:11px;font-weight:800;color:#6a6a8a;line-height:1.4}
+.preset-btn.active .p-label{color:#e8c547}
+.preset-btn .p-sub{font-size:10px;color:#4a4a6a;margin-top:3px}
+.bucket-row{margin-bottom:24px}
+.bucket-row-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.bucket-name{font-size:13px;font-weight:800;color:#f0f0f0}
+.bucket-sub{font-size:11px;color:#5a5a7a;margin-top:2px}
+.bucket-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace}
+.bucket-target{font-size:11px;color:#5a5a7a}
+.bucket-pbar{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.bucket-pct{font-size:11px;font-weight:700;width:36px;text-align:right;font-family:'DM Mono',monospace}
+.bucket-note{font-size:11px;color:#5a5a7a;line-height:1.5}
+.bucket-status{margin-top:5px;font-size:11px}
+.hc-family-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.hc-family-btn{padding:12px 8px;border-radius:10px;border:1px solid #2d2d4a;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;transition:all .2s;background:transparent}
+.hc-family-btn.active{border-color:#4ecdc4;background:rgba(78,205,196,.08)}
+.hc-family-btn .hf-label{font-size:13px;font-weight:800;color:#8a8a8a}
+.hc-family-btn.active .hf-label{color:#4ecdc4}
+.hc-family-btn .hf-sub{font-size:11px;color:#4a4a6a;margin-top:3px}
+.hc-scenario-btn{display:block;width:100%;margin-bottom:10px;padding:14px 16px;border-radius:10px;border:1px solid #2d2d4a;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .2s;background:transparent}
+.hc-row{display:flex;justify-content:space-between;margin-bottom:5px}
+.hc-name{font-size:13px;font-weight:800;color:#8a8a8a}
+.hc-price{font-size:13px;font-weight:800;font-family:'DM Mono',monospace;color:#5a5a7a}
+.hc-desc{font-size:12px;color:#6a6a8a;line-height:1.6;margin-bottom:5px}
+.hc-src{font-size:10px;color:#4a4a6a;font-style:italic}
+.col-btn{display:block;width:100%;margin-bottom:5px;padding:7px 10px;border-radius:8px;border:1px solid #2d2d4a;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .2s;background:transparent}
+.col-btn.active{border-color:#4ecdc4;background:rgba(78,205,196,.08)}
+.col-btn .col-label{font-size:11px;font-weight:700;color:#8a8a8a}
+.col-btn.active .col-label{color:#4ecdc4}
+.col-btn .col-eg{font-size:10px;color:#4a4a6a}
+.return-btn{display:block;width:100%;margin-bottom:5px;padding:7px 10px;border-radius:8px;border:1px solid #2d2d4a;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .2s;background:transparent;color:#8a8a8a;font-size:12px;font-weight:600}
+.return-btn.active{border-color:#e8c547;background:rgba(232,197,71,.08);color:#e8c547}
+.cheat-section{margin-bottom:20px;border-left:3px solid #4ecdc4}
+.cheat-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cheat-item{background:#1a1a2e;border-radius:10px;padding:14px}
+.cheat-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:7px}
+.cheat-item-label{font-size:12px;font-weight:800;color:#f0f0f0;line-height:1.3}
+.cheat-tag{flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:99px;padding:2px 7px;white-space:nowrap}
+.cheat-body{font-size:12px;color:#8a8a8a;line-height:1.65}
+.wd-table{width:100%;border-collapse:collapse}
+.wd-table th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5a5a7a;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.wd-table td{padding:11px 10px;font-family:'DM Mono',monospace}
+.wd-table tr.active-row{background:rgba(232,197,71,0.06)}
+.footer{padding:18px 0;text-align:center;font-size:10px;color:#2a2a3a}
+
+/* Email capture modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;display:none}
+.modal-overlay.open{display:flex}
+.modal{background:#13132a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:36px;max-width:440px;width:90%;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;background:transparent;border:none;color:#6a6a8a;font-size:20px;cursor:pointer;line-height:1}
+.modal h2{font-size:22px;font-weight:800;color:#f0f0f0;margin-bottom:8px}
+.modal p{font-size:13px;color:#8a8a8a;line-height:1.7;margin-bottom:20px}
+.modal input[type=email]{width:100%;background:#1a1a2e;border:1px solid #2d2d4a;border-radius:10px;padding:12px 14px;color:#f0f0f0;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:12px}
+.modal input[type=email]:focus{border-color:#e8c547}
+.modal .submit-btn{width:100%;background:#e8c547;color:#0d0d1a;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s}
+.modal .submit-btn:hover{opacity:.9}
+.modal .skip{display:block;text-align:center;margin-top:12px;font-size:12px;color:#5a5a7a;cursor:pointer}
+.modal .skip:hover{color:#8a8a8a}
+.modal .success{text-align:center;padding:20px 0}
+.modal .success .emoji{font-size:40px;margin-bottom:12px}
+.modal .success h3{font-size:18px;font-weight:800;color:#6ee7b7;margin-bottom:8px}
+.modal .success p{font-size:13px;color:#8a8a8a}
+
+/* Help button */
+.help-btn{position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:99px;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);color:#8a8a8a;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:100;transition:all .2s;font-family:'DM Sans',sans-serif}
+.help-btn:hover{border-color:#e8c547;color:#e8c547}
+
+/* Help modal */
+.help-modal{background:#13132a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:36px;max-width:440px;width:90%;position:relative}
+.help-modal h2{font-size:20px;font-weight:800;color:#f0f0f0;margin-bottom:8px}
+.help-modal p{font-size:13px;color:#8a8a8a;line-height:1.7;margin-bottom:16px}
+.help-modal input,.help-modal textarea{width:100%;background:#1a1a2e;border:1px solid #2d2d4a;border-radius:10px;padding:11px 13px;color:#f0f0f0;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:10px}
+.help-modal input:focus,.help-modal textarea:focus{border-color:#e8c547}
+.help-modal textarea{height:100px;resize:vertical}
+.help-modal .submit-btn{width:100%;background:#a78bfa;color:#0d0d1a;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* Email capture strip */
+.email-strip{background:rgba(232,197,71,0.06);border:1px solid rgba(232,197,71,0.2);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.email-strip .strip-text{flex:1;min-width:200px}
+.email-strip .strip-title{font-size:13px;font-weight:800;color:#e8c547;margin-bottom:3px}
+.email-strip .strip-sub{font-size:12px;color:#6a6a8a}
+.email-strip .strip-form{display:flex;gap:8px;flex-shrink:0}
+.email-strip input[type=email]{background:#1a1a2e;border:1px solid #2d2d4a;border-radius:8px;padding:8px 12px;color:#f0f0f0;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:200px}
+.email-strip input[type=email]:focus{border-color:#e8c547}
+.email-strip .strip-btn{background:#e8c547;color:#0d0d1a;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- Email capture modal (shows on first visit) -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeEmailModal()">×</button>
+    <div id="emailModalContent">
+      <div style="font-size:28px;margin-bottom:12px">🔥</div>
+      <h2>Free FIRE planning, plain English.</h2>
+      <p>FIREstarter helps you understand your FIRE number, your buckets, and your path — without the spreadsheet overwhelm. Drop your email to get notified when we add new features.</p>
+      <input type="email" id="modalEmail" placeholder="your@email.com"/>
+      <button class="submit-btn" onclick="submitEmailModal()">Get Notified of Updates</button>
+      <span class="skip" onclick="closeEmailModal()">No thanks, just take me to the tool</span>
+    </div>
+    <div id="emailModalSuccess" class="success" style="display:none">
+      <div class="emoji">🎉</div>
+      <h3>You're in!</h3>
+      <p>We'll let you know when FIREstarter gets new features. Now go explore your FIRE picture.</p>
+      <button class="submit-btn" style="margin-top:16px" onclick="closeEmailModal()">Take me to the tool →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help modal -->
+<div class="modal-overlay" id="helpModal">
+  <div class="help-modal">
+    <button class="modal-close" onclick="closeHelpModal()">×</button>
+    <h2>💬 Get Help</h2>
+    <p>Something broken? A number looks off? Have a suggestion? Send us a note — we read every one.</p>
+    <input type="text" id="helpName" placeholder="Your name (optional)"/>
+    <input type="email" id="helpEmail" placeholder="Your email (so we can reply)"/>
+    <textarea id="helpMessage" placeholder="What's on your mind?"></textarea>
+    <button class="submit-btn" onclick="submitHelp()">Send Message</button>
+  </div>
+</div>
+
+<!-- Help button -->
+<button class="help-btn" onclick="openHelpModal()" title="Get help">?</button>
+
+<div class="wrap">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="eyebrow">🔥 FIREstarter</div>
+      <h1>Your FIRE Picture</h1>
+    </div>
+    <div class="header-right">
+      <div class="total" id="totalDisplay">$0</div>
+      <div class="saved" id="savedIndicator"><span>○</span><span>Auto-saves as you type</span></div>
+    </div>
+  </div>
+
+  <!-- Email strip (after first visit) -->
+  <div class="email-strip" id="emailStrip" style="display:none">
+    <div class="strip-text">
+      <div class="strip-title">🔥 Stay in the loop</div>
+      <div class="strip-sub">Get notified when FIREstarter adds new features — free, always.</div>
+    </div>
+    <div class="strip-form">
+      <input type="email" id="stripEmail" placeholder="your@email.com"/>
+      <button class="strip-btn" onclick="submitEmailStrip()">Notify Me</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- Step 1 -->
+      <div class="card">
+        <div class="step-head">
+          <div class="step-num" style="background:#e8c547;color:#0d0d1a">1</div>
+          <span class="step-title" style="color:#e8c547">Your Spend</span>
+        </div>
+        <div style="padding:12px 14px;background:rgba(232,197,71,0.06);border:1px solid rgba(232,197,71,0.2);border-radius:10px;margin-bottom:12px">
+          <div style="font-size:11px;color:#5a5a7a;margin-bottom:8px;line-height:1.5">What does your household spend per month? Everything flows from this.</div>
+          <div class="input-wrap" style="margin-bottom:10px">
+            <span class="input-pre">$</span>
+            <input type="number" id="monthly_spend" value="8000" step="500" oninput="onSpendChange()">
+            <span class="input-suf">/mo</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px">
+            <div style="background:#0d0d1a;border-radius:7px;padding:7px 9px">
+              <div style="font-size:10px;color:#5a5a7a;margin-bottom:2px">Annual</div>
+              <div style="font-size:12px;font-weight:700;color:#f0f0f0;font-family:'DM Mono',monospace" id="annualSpendDisplay">$96,000</div>
+            </div>
+            <div style="background:#0d0d1a;border-radius:7px;padding:7px 9px">
+              <div style="font-size:10px;color:#5a5a7a;margin-bottom:2px">FIRE # (25×)</div>
+              <div style="font-size:12px;font-weight:700;color:#e8c547;font-family:'DM Mono',monospace" id="fireNumDisplay">$2,400,000</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="toggle-outer" id="overrideToggle" style="background:#2d2d4a" onclick="toggleOverride()">
+              <div class="toggle-inner" style="left:2px"></div>
+            </div>
+            <span style="font-size:11px;color:#5a5a7a">Override target manually</span>
+          </div>
+          <div id="overrideField" style="display:none;margin-top:10px">
+            <div class="field">
+              <label>Custom FIRE Target</label>
+              <div class="input-wrap"><span class="input-pre">$</span><input type="number" id="fire_target" value="2400000" step="50000" oninput="recalc()"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field"><label>Your Age</label><div class="input-wrap"><span class="input-pre">🎂</span><input type="number" id="age" value="36" step="1" oninput="recalc()"></div></div>
+        <div class="field"><label>Annual Salary</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="salary" value="180000" step="5000" oninput="recalc()"></div></div>
+        <div class="field">
+          <label>Variable / Bonus Comp</label>
+          <div class="note">RSUs, bonuses — use a conservative estimate</div>
+          <div class="input-wrap"><span class="input-pre">$</span><input type="number" id="variable_comp" value="30000" step="5000" oninput="recalc()"></div>
+        </div>
+        <div class="field">
+          <label>Annual Contribution</label>
+          <div class="note">Total added across all accounts/yr</div>
+          <div class="input-wrap"><span class="input-pre">$</span><input type="number" id="annual_contribution" value="48000" step="1000" oninput="recalc()"></div>
+        </div>
+        <div style="padding:10px 12px;background:rgba(110,231,183,0.06);border:1px solid rgba(110,231,183,0.15);border-radius:8px">
+          <div style="font-size:10px;color:#5a5a7a;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Savings Rate</div>
+          <div style="font-size:20px;font-weight:800;font-family:'DM Mono',monospace" id="savingsRateDisplay">22%</div>
+          <div style="font-size:11px;margin-top:2px" id="savingsRateLabel">On track — meets FIRE benchmark</div>
+          <div style="font-size:10px;color:#4a4a6a;margin-top:2px">Benchmark: 25–50%</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="card">
+        <div class="step-head">
+          <div class="step-num" style="background:#4ecdc4;color:#0d0d1a">2</div>
+          <span class="step-title" style="color:#4ecdc4">Your Accounts</span>
+        </div>
+        <div style="font-size:11px;color:#5a5a7a;margin-bottom:12px;line-height:1.5">Rough totals are fine to start.</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#a78bfa;margin-bottom:8px">Retirement</div>
+        <div class="field"><label>401(k)</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="traditional_401k" value="492000" step="1000" oninput="recalc()"></div></div>
+        <div class="field"><label>Roth IRA</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="roth_ira" value="73900" step="1000" oninput="recalc()"></div></div>
+        <div class="field"><label>Traditional IRA</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="traditional_ira" value="1800" step="1000" oninput="recalc()"></div></div>
+        <div class="field"><label>HSA</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="hsa" value="0" step="1000" oninput="recalc()"></div></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#4ecdc4;margin:10px 0 8px">Brokerage</div>
+        <div class="field"><label>Taxable Brokerage</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="taxable_brokerage" value="334000" step="1000" oninput="recalc()"></div></div>
+        <div class="field"><label>Life Ins. Cash Value</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="life_insurance_cv" value="0" step="1000" oninput="recalc()"></div></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#67e8f9;margin:10px 0 8px">Cash & Other</div>
+        <div class="field"><label>Cash / Savings</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="taxable_cash" value="46000" step="1000" oninput="recalc()"></div></div>
+        <div class="field"><label>529 (Kids)</label><div class="input-wrap"><span class="input-pre">$</span><input type="number" id="kids_529" value="8000" step="1000" oninput="recalc()"></div></div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="card">
+        <div class="step-head">
+          <div class="step-num" style="background:#a78bfa;color:#0d0d1a">3</div>
+          <span class="step-title" style="color:#a78bfa">Assumptions</span>
+        </div>
+
+        <!-- COL -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#6a6a8a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Cost of Living</div>
+          <div style="font-size:11px;color:#5a5a7a;margin-bottom:10px;line-height:1.6">Your monthly spend already reflects where you live. Use the selector as a <em style="color:#ccc">"what if I lived somewhere else?"</em> scenario tool.</div>
+          <div style="padding:10px 12px;background:rgba(78,205,196,0.06);border:1px solid rgba(78,205,196,0.2);border-radius:8px;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:0" id="colBakedWrap">
+              <div class="toggle-outer" id="colBakedToggle" style="background:#4ecdc4" onclick="toggleColBaked()">
+                <div class="toggle-inner" style="left:16px"></div>
+              </div>
+              <span style="font-size:11px;color:#4ecdc4;font-weight:700;line-height:1.4">My monthly spend already includes my cost of living</span>
+            </div>
+          </div>
+          <div id="colSelector" style="display:none">
+            <div style="font-size:11px;color:#5a5a7a;margin-bottom:8px">Select a location to model:</div>
+            <button class="col-btn" data-key="lcol" onclick="setCol('lcol')"><div class="col-label">Low Cost (LCOL)</div><div class="col-eg">Rural TX, Midwest, Southeast</div></button>
+            <button class="col-btn active" data-key="mcol" onclick="setCol('mcol')"><div class="col-label">Medium Cost (MCOL)</div><div class="col-eg">Austin suburbs, mid-size cities</div></button>
+            <button class="col-btn" data-key="hcol" onclick="setCol('hcol')"><div class="col-label">High Cost (HCOL)</div><div class="col-eg">Austin proper, Denver, Seattle</div></button>
+            <button class="col-btn" data-key="vhcol" onclick="setCol('vhcol')"><div class="col-label">Very High Cost (VHCOL)</div><div class="col-eg">NYC, SF, LA</div></button>
+            <div style="font-size:11px;color:#4ecdc4;margin-top:6px" id="colAdjustedDisplay"></div>
+          </div>
+        </div>
+
+        <!-- Inflation -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#6a6a8a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Inflation: <span id="inflLabel">3</span>%</div>
+          <div style="font-size:11px;color:#5a5a7a;margin-bottom:8px">↳ All projections show real (inflation-adjusted) returns</div>
+          <input type="range" id="inflation_rate" min="1" max="6" step="0.5" value="3" style="accent-color:#f97316" oninput="document.getElementById('inflLabel').textContent=this.value;recalc()">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#4a4a6a;margin-top:3px"><span>1% low</span><span>6% high</span></div>
+        </div>
+
+        <!-- Return scenario -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#6a6a8a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Return Scenario</div>
+          <div style="font-size:11px;color:#5a5a7a;margin-bottom:8px">↳ Affects FIRE Projection tab & growth chart</div>
+          <button class="return-btn" data-key="conservative" onclick="setReturn('conservative')">Conservative (6%/yr)</button>
+          <button class="return-btn active" data-key="moderate" onclick="setReturn('moderate')">Moderate (8%/yr)</button>
+          <button class="return-btn" data-key="optimistic" onclick="setReturn('optimistic')">Optimistic (10%/yr)</button>
+          <div style="font-size:11px;color:#4a4a6a;margin-top:5px">💡 Biggest lever — can shift FIRE date 5–8 years</div>
+        </div>
+
+        <!-- Withdrawal rate -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#6a6a8a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Withdrawal Rate: <span id="wdRateLabel">4</span>%</div>
+          <div style="font-size:11px;color:#5a5a7a;margin-bottom:8px">↳ Affects Withdrawal tab only — not your FIRE date</div>
+          <input type="range" id="withdrawal_rate" min="2" max="6" step="0.5" value="4" style="accent-color:#e8c547" oninput="document.getElementById('wdRateLabel').textContent=this.value;recalc()">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#4a4a6a;margin-top:3px"><span>2% safer</span><span>6% riskier</span></div>
+          <div style="font-size:11px;color:#4a4a6a;margin-top:5px">💡 Most FIRE planners use 4%</div>
+        </div>
+      </div>
+
+      <button onclick="resetDefaults()" style="font-size:11px;color:#4a4a6a;background:transparent;border:1px solid #2d2d4a;border-radius:8px;padding:7px 14px;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%">Reset to defaults</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div>
+      <!-- Tabs -->
+      <div class="tabs-wrap">
+        <div class="tabs">
+          <button class="tab-btn active-pic" onclick="setTab(0)">Portfolio</button>
+          <button class="tab-btn" onclick="setTab(1)" style="position:relative">FIRE Projection</button>
+          <button class="tab-btn" onclick="setTab(2)" style="position:relative"><span style="position:absolute;left:-1px;top:25%;bottom:25%;width:1px;background:rgba(255,255,255,0.08)"></span>Healthcare</button>
+          <button class="tab-btn" onclick="setTab(3)">Withdrawal</button>
+          <button class="tab-btn" onclick="setTab(4)">Cheat Sheet</button>
+        </div>
+        <div class="tab-labels">
+          <span>Your picture →</span>
+          <span>← Go deeper</span>
+        </div>
+      </div>
+
+      <!-- Tab content -->
+      <div id="tabContent"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    🔥 FIREstarter · Free forever · For personal planning use only · Not financial advice · Projections use historical averages and do not guarantee future results
+  </div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'firestarter_v1';
+let state = {
+  monthly_spend:8000, age:36, salary:180000, variable_comp:30000,
+  annual_contribution:48000, override_fire_target:false, fire_target:2400000,
+  traditional_401k:492000, roth_ira:73900, traditional_ira:1800, hsa:0,
+  taxable_brokerage:334000, life_insurance_cv:0, taxable_cash:46000, kids_529:8000,
+  return_scenario:'moderate', withdrawal_rate:4, inflation_rate:3,
+  col_baked_in:true, col_tier:'mcol',
+  bucket_preset:'early', bucket_ret_pct:55, bucket_bro_pct:38, bucket_liq_pct:7,
+  hc_bucket:'market', hc_override:false, hc_custom:1500, family_size:'family',
+};
+let activeTab = 0;
+let showMath = false;
+let growthChart = null;
+let wdChart = null;
+let saveTimer = null;
+let calcResult = {};
+
+const HIST = {conservative:0.06, moderate:0.08, optimistic:0.10};
+const TAX  = {conservative:0.22, moderate:0.18, optimistic:0.15};
+const COL  = {lcol:0.80, mcol:1.00, hcol:1.45, vhcol:2.00};
+const HC   = {
+  subsidized:  {label:'🟢 ACA Subsidized',  color:'#6ee7b7', single:200,  couple:350,  family:450,  desc:'You manage retirement income (Roth draws, capital-gains harvesting) to stay below subsidy thresholds. Many FIRE households engineer this intentionally.', src:'Healthcare.gov 2024, KFF subsidy calculator'},
+  market:      {label:'🟡 Market Rate ACA', color:'#e8c547', single:550,  couple:1100, family:1800, desc:'Full ACA marketplace premiums with no subsidies — the safe default for most early retirees who haven\'t optimized their income.', src:'KFF Health Insurance Marketplace Calculator 2024'},
+  conservative:{label:'🔴 Conservative',    color:'#f87171', single:850,  couple:1700, family:2500, desc:'Includes rising premiums, dental, vision, and average out-of-pocket costs. Use this if you want the sleep-at-night number.', src:'eHealth Insurance Cost Report 2024'},
+};
+const BUCKET_PRESETS = {
+  early: {label:'Retiring before 59½', sub:'Need a bridge to cover the gap', ret:55, bro:38, liq:7},
+  normal:{label:'Retiring at 59½ or later', sub:'Retirement accounts accessible at FIRE', ret:65, bro:28, liq:7},
+  custom:{label:'Custom', sub:'Set your own targets', ret:null, bro:null, liq:null},
+};
+const MATH_QA = [
+  {q:'Where do the 10% / 8% / 6% return rates come from?', a:'The S&P 500 has returned an average of ~10.5% annually since 1926. We use 10% optimistic, 8% moderate, and 6% conservative. All projections subtract your inflation assumption to show real purchasing power.', src:'Vanguard / CRSP data, 1926–present'},
+  {q:'Why subtract inflation from returns?', a:'Real return = nominal return minus inflation. At 3% inflation and 8% nominal, purchasing power grows at ~5%/yr. This makes projections honest about what your money is actually worth in the future.', src:'Federal Reserve historical CPI data'},
+  {q:'Why 25x your annual spend as your FIRE number?', a:'Simple math: 100% ÷ 4% = 25. The 4% rule comes from the Trinity Study (1998), which tested portfolio survival over 30-year periods. A 4% withdrawal rate had ~95% success.', src:'Trinity Study, Journal of Financial Planning, 1998'},
+  {q:'How is Coast FIRE calculated?', a:'Coast FIRE = Your FIRE Target ÷ (1 + real return)^years until 65. If that number is less than what you have today, your portfolio grows to your goal by 65 with zero additional contributions.', src:'Standard time-value of money formula'},
+  {q:'How does cost of living affect the numbers?', a:'We apply a multiplier to your monthly spend. LCOL (0.80×) means the same lifestyle costs ~20% less. HCOL (1.45×) reflects major metros.', src:'MIT Living Wage Calculator, BLS Consumer Expenditure Survey'},
+];
+
+// ─── Helpers ─────────────────────────────────────────────────────────────
+const fmt = n => n>=1e6?`$${(n/1e6).toFixed(2)}M`:n>=1000?`$${(n/1000).toFixed(0)}K`:`$${Math.round(n).toLocaleString()}`;
+const fmtF = n => `$${Math.round(n).toLocaleString()}`;
+const clamp = (n,mn,mx) => Math.min(mx,Math.max(mn,n));
+
+// ─── Persistence ──────────────────────────────────────────────────────────
+function loadState() {
+  try { const s=localStorage.getItem(STORAGE_KEY); if(s) state={...state,...JSON.parse(s)}; } catch{}
+}
+function saveState() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}
+    const el=document.getElementById('savedIndicator');
+    if(el){el.classList.add('on');el.innerHTML='<span>✓</span><span>Saved</span>';setTimeout(()=>{el.classList.remove('on');el.innerHTML='<span>○</span><span>Auto-saves as you type</span>';},1800);}
+  },300);
+}
+
+// ─── Calculations ─────────────────────────────────────────────────────────
+function calc() {
+  const s = state;
+  const colMult = s.col_baked_in ? 1 : (COL[s.col_tier]||1);
+  const inflRate = (s.inflation_rate||3)/100;
+  const adjSpend = s.monthly_spend * colMult * 12;
+  const effTarget = s.override_fire_target ? s.fire_target : Math.round(adjSpend*25/50000)*50000;
+
+  const totalRet = s.roth_ira+s.traditional_401k+s.traditional_ira+s.hsa;
+  const totalBro = s.taxable_brokerage+s.life_insurance_cv;
+  const totalLiq = s.taxable_cash;
+  const totalAll = totalRet+totalBro+totalLiq+s.kids_529;
+
+  const rMod=HIST.moderate, rCon=HIST.conservative, rOpt=HIST.optimistic;
+  const realMod=Math.max(0.01,rMod-inflRate), realCon=Math.max(0.01,rCon-inflRate), realOpt=Math.max(0.01,rOpt-inflRate);
+
+  const pct = clamp((totalAll/effTarget)*100,0,100);
+  const gap = Math.max(0,effTarget-totalAll);
+
+  function yrsTo(target,rate,contrib){
+    if(totalAll>=target)return 0;
+    let b=totalAll;
+    for(let y=0;y<=50;y++){if(b>=target)return y; b=b*(1+rate)+contrib;}
+    return 50;
+  }
+  const yBase=yrsTo(effTarget,realMod,s.annual_contribution);
+  const yCon =yrsTo(effTarget,realCon,s.annual_contribution);
+  const yOpt =yrsTo(effTarget,realOpt,s.annual_contribution);
+  const fireYear=new Date().getFullYear()+yBase;
+  const fireAge=s.age+yBase;
+
+  const growthData=[]; let bB=totalAll,bC=totalAll,bO=totalAll; const yr=new Date().getFullYear();
+  for(let y=0;y<=Math.max(yCon+3,30);y++){
+    growthData.push({year:yr+y,base:Math.round(bB),conservative:Math.round(bC),optimistic:Math.round(bO)});
+    bB=bB*(1+realMod)+s.annual_contribution; bC=bC*(1+realCon)+s.annual_contribution; bO=bO*(1+realOpt)+s.annual_contribution;
+  }
+
+  const coastNum=effTarget/Math.pow(1+realMod,Math.max(0,65-s.age));
+  const isCoast=totalAll>=coastNum;
+  const coastPct=clamp((totalAll/coastNum)*100,0,100);
+
+  const retTarget=effTarget*(s.bucket_ret_pct/100);
+  const broTarget=effTarget*(s.bucket_bro_pct/100);
+  const liqTarget=effTarget*(s.bucket_liq_pct/100);
+
+  const hcBkt=HC[s.hc_bucket]||HC.market;
+  const hcMo=s.hc_override?s.hc_custom:(hcBkt[s.family_size]||hcBkt.family);
+  const yrsToMed=Math.max(0,65-fireAge);
+  const hcTotal=hcMo*12*yrsToMed;
+  const hcReserve=hcTotal;
+  const fullTarget=effTarget+hcReserve;
+  const fullPct=clamp((totalAll/fullTarget)*100,0,100);
+  const fullGap=Math.max(0,fullTarget-totalAll);
+
+  const taxRate=TAX[s.return_scenario];
+  const wdData=[3,3.5,4,4.5,5].map(r=>{const g=effTarget*(r/100);const n=g*(1-taxRate);return{rate:`${r}%`,gross:Math.round(g),net:Math.round(n),monthly:Math.round(n/12)};});
+
+  const totalIncome=(s.salary||0)+(s.variable_comp||0);
+  const savingsRate=totalIncome>0?clamp(Math.round((s.annual_contribution/totalIncome)*100),0,100):0;
+  const savingsColor=savingsRate>=50?'#e8c547':savingsRate>=25?'#6ee7b7':savingsRate>=15?'#f97316':'#f87171';
+  const savingsLabel=savingsRate>=50?'Excellent — well above benchmark':savingsRate>=25?'On track — meets FIRE benchmark':savingsRate>=15?'Below benchmark — aim for 25%+':'Low — consider increasing contributions';
+
+  calcResult={totalAll,totalRet,totalBro,totalLiq,effTarget,pct,gap,
+    yBase,yCon,yOpt,fireYear,fireAge,growthData,
+    coastNum,isCoast,coastPct,retTarget,broTarget,liqTarget,
+    hcMo,hcTotal,hcReserve,fullTarget,fullPct,fullGap,yrsToMed,
+    wdData,taxRate,hcBkt,
+    savingsRate,savingsColor,savingsLabel,totalIncome,
+    realMod,realCon,realOpt,inflRate,colMult,adjSpend};
+  return calcResult;
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────────
+function pbar(pct,color,h=8){return `<div class="pbar-wrap" style="height:${h}px"><div class="pbar-fill" style="width:${clamp(pct,0,100)}%;background:${color}"></div></div>`;}
+function statbox(label,value,sub,color){return `<div class="statbox"><div class="lbl">${label}</div><div class="val" style="color:${color}">${value}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
+function infobox(color,html){return `<div class="infobox" style="background:${color}10;border:1px solid ${color}30;color:${color}">${html}</div>`;}
+function toggle(id,on,onchange){return `<div class="toggle-outer" id="${id}" style="background:${on?'#e8c547':'#2d2d4a'}" onclick="${onchange}"><div class="toggle-inner" style="left:${on?16:2}px"></div></div>`;}
+
+// ─── Tab renderers ────────────────────────────────────────────────────────
+function renderPortfolio(c){
+  const s=state;
+  return `
+  <div class="statgrid g3" style="margin-bottom:20px">
+    ${statbox('Total Portfolio',fmt(c.totalAll),'','#e8c547')}
+    ${statbox('Retirement Accounts',fmt(c.totalRet),'401k · Roth · IRA · HSA','#a78bfa')}
+    ${statbox('Brokerage + Cash',fmt(c.totalBro+c.totalLiq),'Accessible before 59½','#4ecdc4')}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="slabel">Taxable Accounts</div>
+      ${[['Brokerage',s.taxable_brokerage,'#4ecdc4','Accessible anytime — taxable gains'],['Cash / Savings',s.taxable_cash,'#67e8f9','Fully liquid, FDIC protected'],['Life Ins. Cash Val',s.life_insurance_cv,'#f97316','Via policy loan']].map(([label,val,color,sub])=>`
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:13px;color:#ccc">${label}</span><span style="font-size:13px;font-weight:700;color:${color};font-family:'DM Mono',monospace">${fmtF(val)}</span></div>
+        <div style="font-size:11px;color:#5a5a7a;margin-bottom:5px">${sub}</div>
+        ${pbar(c.totalAll>0?(val/c.totalAll)*100:0,color)}
+      </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="slabel">Tax-Advantaged Accounts</div>
+      ${[['401(k)',s.traditional_401k,'#a78bfa','Pre-tax, penalty-free at 59½'],['Roth IRA',s.roth_ira,'#c084fc','After-tax, tax-free growth'],['Traditional IRA',s.traditional_ira,'#818cf8','Pre-tax, penalty-free at 59½'],['HSA',s.hsa,'#6ee7b7','Triple tax-advantaged']].map(([label,val,color,sub])=>`
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:13px;color:#ccc">${label}</span><span style="font-size:13px;font-weight:700;color:${color};font-family:'DM Mono',monospace">${fmtF(val)}</span></div>
+        <div style="font-size:11px;color:#5a5a7a;margin-bottom:5px">${sub}</div>
+        ${pbar(c.totalAll>0?(val/c.totalAll)*100:0,color)}
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="slabel">Kids & Other</div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;color:#ccc">529 Education</span><span style="font-size:13px;font-weight:700;color:#fbbf24;font-family:'DM Mono',monospace">${fmtF(s.kids_529)}</span></div>
+    <div style="font-size:11px;color:#5a5a7a">Education-restricted. Not counted toward your FIRE number.</div>
+  </div>`;
+}
+
+function renderFIRE(c){
+  const s=state;
+  const curYear=new Date().getFullYear();
+  return `
+  <div class="statgrid g5" style="margin-bottom:20px">
+    ${statbox('FIRE Target',fmt(c.effTarget),'','#e8c547')}
+    ${statbox('Current Portfolio',fmt(c.totalAll),'','#4ecdc4')}
+    ${statbox('Gap to FIRE',fmt(c.gap),`${(c.inflRate*100).toFixed(0)}% inflation adj.`,c.gap===0?'#6ee7b7':'#f87171')}
+    ${statbox('% to Target',`${c.pct.toFixed(1)}%`,'','#a78bfa')}
+    <div class="statbox" style="border-color:${c.savingsColor}40;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${c.savingsColor}"></div>
+      <div class="lbl">Savings Rate</div>
+      <div class="val" style="color:${c.savingsColor}">${c.savingsRate}%</div>
+      <div style="font-size:10px;color:${c.savingsColor};margin-top:4px">${c.savingsLabel}</div>
+      <div style="font-size:10px;color:#4a4a6a;margin-top:2px">Benchmark: 25–50%</div>
+    </div>
+  </div>
+
+  <div class="scenario-cards">
+    <div class="scenario-card" style="border-top:2px solid #6ee7b7">
+      <div class="sc-label" style="color:#6ee7b7">Optimistic (10%)</div>
+      <div class="sc-year" style="color:#6ee7b7">${curYear+c.yOpt}</div>
+      <div class="sc-sub">Age ${s.age+c.yOpt} · ${c.yOpt} years</div>
+    </div>
+    <div class="scenario-card" style="border-top:2px solid #e8c547">
+      <div class="sc-label" style="color:#e8c547">Base (8%)</div>
+      <div class="sc-year" style="color:#e8c547;font-size:38px">${curYear+c.yBase}</div>
+      <div class="sc-sub">Age ${s.age+c.yBase} · ${c.yBase} years</div>
+    </div>
+    <div class="scenario-card" style="border-top:2px solid #f87171">
+      <div class="sc-label" style="color:#f87171">Conservative (6%)</div>
+      <div class="sc-year" style="color:#f87171">${curYear+c.yCon}</div>
+      <div class="sc-sub">Age ${s.age+c.yCon} · ${c.yCon} years</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <button class="math-toggle-btn" onclick="toggleMath()"><span id="mathArrow">▸</span><span>How did we calculate this?</span></button>
+    <div class="math-panel" id="mathPanel">
+      ${MATH_QA.map(item=>`<div class="math-item"><div class="math-q">${item.q}</div><div class="math-a">${item.a}</div><div class="math-src">📚 ${item.src}</div></div>`).join('')}
+      <div style="padding:10px 18px;background:rgba(232,197,71,0.04);border-top:1px solid rgba(232,197,71,0.1);font-size:11px;color:#5a5a7a">Past performance does not guarantee future results. Use the scenario toggles to stress-test your assumptions.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="slabel">Your Complete Picture</div>
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div><div style="font-size:13px;font-weight:700;color:#f0f0f0">FIRE Number</div><div style="font-size:11px;color:#5a5a7a">25× your annual spend — funds your lifestyle forever</div></div>
+        <div style="font-size:15px;font-weight:800;color:#e8c547;font-family:'DM Mono',monospace;flex-shrink:0;margin-left:12px">${fmtF(c.effTarget)}</div>
+      </div>
+      ${pbar(c.pct,'#e8c547',10)}
+      <div style="text-align:right;margin-top:4px;font-size:11px;color:#5a5a7a">${fmtF(c.totalAll)} saved · ${c.pct.toFixed(1)}% there</div>
+    </div>
+    <div style="margin-bottom:16px;padding:12px 14px;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.15);border-radius:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div><div style="font-size:13px;font-weight:700;color:#f87171">+ Healthcare Reserve</div><div style="font-size:11px;color:#5a5a7a">${fmtF(c.hcMo)}/mo × 12 × ${c.yrsToMed} years until Medicare — temporary, not 25×</div></div>
+        <div style="font-size:15px;font-weight:800;color:#f87171;font-family:'DM Mono',monospace;flex-shrink:0;margin-left:12px">${fmtF(c.hcReserve)}</div>
+      </div>
+      <div style="font-size:11px;color:#6a6a8a;line-height:1.6">This is NOT added to your 25× FIRE number because it's a temporary cost — it ends at 65 when Medicare begins. It's a separate reserve to set aside and draw from until then.</div>
+    </div>
+    <div style="padding:14px 16px;background:rgba(232,197,71,0.06);border:1px solid rgba(232,197,71,0.2);border-radius:10px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><div style="font-size:14px;font-weight:800;color:#e8c547">Total to Be Fully Covered</div><div style="font-size:11px;color:#5a5a7a">FIRE number + healthcare reserve</div></div>
+        <div style="font-size:20px;font-weight:800;color:#e8c547;font-family:'DM Mono',monospace;flex-shrink:0;margin-left:12px">${fmtF(c.fullTarget)}</div>
+      </div>
+      ${pbar(c.fullPct,'linear-gradient(90deg,#4ecdc4,#e8c547)',12)}
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="font-size:11px;color:#5a5a7a">${fmtF(c.totalAll)} of ${fmtF(c.fullTarget)}</span>
+        <span style="font-size:11px;font-weight:700;color:#e8c547">${c.fullPct.toFixed(1)}% fully covered</span>
+      </div>
+      ${c.fullGap>0?`<div style="font-size:11px;color:#f87171;margin-top:6px">↑ ${fmtF(c.fullGap)} still needed to be completely covered</div>`:`<div style="font-size:11px;color:#6ee7b7;margin-top:6px">✓ You're fully covered — lifestyle AND healthcare funded</div>`}
+    </div>
+    <div style="font-size:11px;color:#4a4a6a;line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:8px">
+      💡 Configure your healthcare scenario in the <strong style="color:#f87171;cursor:pointer" onclick="setTab(2)">Healthcare tab</strong> — it updates these numbers automatically.
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="slabel">Is your money where you need it, when you need it?</div>
+    <div style="font-size:12px;color:#6a6a8a;margin-bottom:16px;line-height:1.7">Hitting your FIRE number isn't enough if it's all locked in retirement accounts. You need the right mix so you can access money at every stage.</div>
+    <div class="bucket-presets">
+      ${Object.entries(BUCKET_PRESETS).map(([key,p])=>`<button class="preset-btn ${state.bucket_preset===key?'active':''}" onclick="applyPreset('${key}')"><div class="p-label">${p.label}</div><div class="p-sub">${p.sub}</div></button>`).join('')}
+    </div>
+    <div style="padding:10px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;margin-bottom:16px;font-size:11px;color:#5a5a7a;line-height:1.6">
+      💡 These splits are suggested starting points — not a universal rule. Your ideal mix depends on your retirement age, expenses, and risk tolerance. Use <strong style="color:#e8c547">Custom</strong> to adjust, or work with a CFP to dial it in.
+    </div>
+    ${[
+      {label:'🔒 Retirement Accounts (59½+)',sub:'401k · Roth IRA · IRA · HSA — locked until 59½',current:c.totalRet,target:c.retTarget,pct:state.bucket_ret_pct,key:'bucket_ret_pct',color:'#a78bfa',note:'Your long-term engine. Largest bucket — but locked until 59½.'},
+      {label:'📈 Brokerage / Flex',sub:'Taxable investments — accessible anytime',current:c.totalBro,target:c.broTarget,pct:state.bucket_bro_pct,key:'bucket_bro_pct',color:'#4ecdc4',note:'Your bridge from FIRE date to 59½. Critical for early retirement.'},
+      {label:'💧 Liquid Cushion',sub:'Cash, HYSA — always accessible',current:c.totalLiq,target:c.liqTarget,pct:state.bucket_liq_pct,key:'bucket_liq_pct',color:'#67e8f9',note:'12–18 months of expenses in cash. Never sell investments in a downturn.'},
+    ].map(({label,sub,current,target,pct,key,color,note})=>{
+      const prog=clamp((current/target)*100,0,100);
+      const over=current>=target;
+      return `<div class="bucket-row">
+        <div class="bucket-row-header">
+          <div><div class="bucket-name">${label}</div><div class="bucket-sub">${sub}</div></div>
+          <div style="text-align:right;flex-shrink:0;margin-left:12px"><div class="bucket-val" style="color:${color}">${fmtF(current)}</div><div class="bucket-target">target ${fmtF(target)}</div></div>
+        </div>
+        <div class="bucket-pbar">
+          <div style="flex:1">${pbar(prog,over?'#6ee7b7':color)}</div>
+          <div class="bucket-pct" style="color:${over?'#6ee7b7':color}">${prog.toFixed(0)}%</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="bucket-note">${note}</div>
+          ${state.bucket_preset==='custom'?`<div style="display:flex;align-items:center;gap:5px;margin-left:10px;flex-shrink:0"><span style="font-size:11px;color:#5a5a7a">Target:</span><input type="number" min="0" max="100" value="${pct}" style="width:46px;background:#1a1a2e;border:1px solid #2d2d4a;border-radius:6px;color:${color};font-weight:700;font-size:12px;font-family:'DM Mono',monospace;padding:3px 6px;outline:none;text-align:center" oninput="state['${key}']=Number(this.value);recalc()"><span style="font-size:11px;color:#5a5a7a">%</span></div>`:''}
+        </div>
+        <div class="bucket-status" style="color:${over?'#6ee7b7':'#f87171'}">${over?'✓ Bucket fully funded at your target':'↑ '+fmtF(target-current)+' still needed in this bucket'}</div>
+      </div>`;
+    }).join('')}
+    ${state.bucket_preset==='custom'?`<div class="infobox" style="background:rgba(232,197,71,0.08);border:1px solid rgba(232,197,71,0.2);color:#e8c547;margin-top:0">Totals: ${Number(state.bucket_ret_pct)+Number(state.bucket_bro_pct)+Number(state.bucket_liq_pct)}%${Number(state.bucket_ret_pct)+Number(state.bucket_bro_pct)+Number(state.bucket_liq_pct)===100?' ✓':' — adjust to equal 100%'}</div>`:''}
+  </div>
+
+  <div class="card" style="margin-bottom:16px;border-left:3px solid ${c.isCoast?'#6ee7b7':'#f97316'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${c.isCoast?'#6ee7b7':'#f97316'};margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid ${c.isCoast?'#6ee7b733':'#f9731633'}">🏄 Coast FIRE</div>
+        <div style="font-size:13px;color:#8a8a8a;line-height:1.7;max-width:460px">Have you already saved enough that — even if you stopped contributing today — your portfolio grows to your FIRE target by age 65? If yes, you're coasting.</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:16px">
+        <div style="font-size:11px;color:#5a5a7a;margin-bottom:3px">Coast Number</div>
+        <div style="font-size:22px;font-weight:800;font-family:'DM Mono',monospace;color:${c.isCoast?'#6ee7b7':'#f97316'}">${fmt(c.coastNum)}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="flex:1">${pbar(c.coastPct,c.isCoast?'#6ee7b7':'#f97316')}</div>
+      <div style="font-size:11px;font-weight:700;color:${c.isCoast?'#6ee7b7':'#f97316'};width:36px;text-align:right">${c.coastPct.toFixed(0)}%</div>
+    </div>
+    ${c.isCoast?infobox('#6ee7b7',`✓ You're already Coast FIRE! Your ${fmt(c.totalAll)} will grow to ${fmt(c.effTarget)} by 65 without another contribution.`):infobox('#f97316',`↑ ${fmt(c.coastNum-c.totalAll)} away from Coast FIRE. Once you hit ${fmt(c.coastNum)}, contributions become optional.`)}
+  </div>
+
+  <div class="card">
+    <div class="slabel">Portfolio Growth Over Time</div>
+    <canvas id="growthChart" height="120"></canvas>
+  </div>`;
+}
+
+function renderHealthcare(c){
+  const s=state;
+  const hcBkt=HC[s.hc_bucket]||HC.market;
+  const hcMo=s.hc_override?s.hc_custom:(hcBkt[s.family_size]||hcBkt.family);
+  return `
+  <div style="margin-bottom:20px;padding:16px 20px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:12px">
+    <div style="font-size:13px;font-weight:800;color:#f87171;margin-bottom:8px">⚠️ The #1 thing early retirees don't plan for</div>
+    <div style="font-size:13px;color:#9a9ab8;line-height:1.8">The day you leave your employer, <strong style="color:#f0f0f0">your health insurance disappears.</strong> If you retire before 65, you're on your own until Medicare kicks in. Most people have never paid for their own health insurance — your employer has been covering it quietly the whole time.</div>
+  </div>
+
+  <div style="margin-bottom:16px;padding:16px 18px;background:rgba(232,197,71,0.06);border:1px solid rgba(232,197,71,0.2);border-radius:12px">
+    <div style="font-size:12px;font-weight:700;color:#e8c547;margin-bottom:12px;letter-spacing:.05em;text-transform:uppercase">How healthcare affects your FIRE number</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      ${[['Your FIRE Number',fmtF(c.effTarget),'#e8c547','25× annual spend'],['+ HC Reserve',fmtF(c.hcReserve),'#f87171',c.yrsToMed+' yrs until Medicare'],['= Total to Be Covered',fmtF(c.fullTarget),'#f0f0f0','fully covered number']].map(([label,value,color,sub])=>`
+      <div style="background:#1a1a2e;border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:10px;color:#5a5a7a;margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">${label}</div>
+        <div style="font-size:16px;font-weight:800;color:${color};font-family:'DM Mono',monospace">${value}</div>
+        <div style="font-size:10px;color:#4a4a6a;margin-top:3px">${sub}</div>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:#6a6a8a;line-height:1.6">Healthcare is a <strong style="color:#f0f0f0">temporary cost</strong> — it ends at 65 when Medicare begins. You don't need to 25× it. You just need to fund ${c.yrsToMed} specific years.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;border-left:3px solid #4ecdc4">
+    <div class="slabel">📅 The Medicare Cliff — Why 65 Matters</div>
+    <div style="font-size:13px;color:#9a9ab8;line-height:1.8;margin-bottom:16px">Medicare is the federal health program that begins at <strong style="color:#f0f0f0">age 65</strong>. Before that, you're in the private market. Retire at 50 and you have 15 years to cover. At 55, it's 10 years. At 60, just 5 years. You don't need to 25× this cost — you only need to fund a specific window.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      ${[['Your FIRE Age',''+c.fireAge,'#e8c547'],['Years Until Medicare',c.yrsToMed<=0?'Already 65+':c.yrsToMed+' years',c.yrsToMed>15?'#f87171':c.yrsToMed>8?'#e8c547':'#6ee7b7'],['Your HC Window',c.yrsToMed<=0?'None — Medicare!':'Age '+c.fireAge+'–65','#4ecdc4']].map(([label,value,color])=>`
+      <div style="background:#1a1a2e;border-radius:10px;padding:14px 16px;text-align:center">
+        <div style="font-size:10px;color:#5a5a7a;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">${label}</div>
+        <div style="font-size:20px;font-weight:800;color:${color};font-family:'DM Mono',monospace">${value}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;border-left:3px solid #a78bfa">
+    <div class="slabel">💡 What Is the ACA and Why Does It Matter?</div>
+    <div style="font-size:13px;color:#9a9ab8;line-height:1.8">The <strong style="color:#f0f0f0">Affordable Care Act (ACA)</strong> is the health insurance marketplace available when you don't have employer coverage. Key thing: <strong style="color:#e8c547">subsidies exist based on your income.</strong> Many FIRE households intentionally keep reported income low (drawing from Roth accounts, which don't count as income) to qualify for subsidies. This is legal, common, and worth planning around.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="slabel">👨‍👩‍👧‍👦 Who Are You Covering?</div>
+    <div class="hc-family-grid">
+      ${[['single','Just Me','Single adult'],['couple','Us Two','Two adults'],['family','Our Family','Adults + kids']].map(([key,label,sub])=>`
+      <button class="hc-family-btn ${s.family_size===key?'active':''}" onclick="setFamily('${key}')">
+        <div class="hf-label">${label}</div><div class="hf-sub">${sub}</div>
+      </button>`).join('')}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="slabel">📊 Choose Your Healthcare Scenario</div>
+    <div style="font-size:12px;color:#6a6a8a;margin-bottom:14px;line-height:1.6">Not sure which applies? Start with Market Rate as your safe assumption.</div>
+    ${Object.entries(HC).map(([key,v])=>`
+    <button class="hc-scenario-btn" style="border-color:${s.hc_bucket===key&&!s.hc_override?v.color:'#2d2d4a'};background:${s.hc_bucket===key&&!s.hc_override?v.color+'10':'transparent'}" onclick="setHCBucket('${key}')">
+      <div class="hc-row">
+        <div class="hc-name" style="color:${s.hc_bucket===key&&!s.hc_override?v.color:'#8a8a8a'}">${v.label}</div>
+        <div class="hc-price" style="color:${s.hc_bucket===key&&!s.hc_override?v.color:'#5a5a7a'}">~${fmtF(v[s.family_size]||v.family)}/mo</div>
+      </div>
+      <div class="hc-desc">${v.desc}</div>
+      <div class="hc-src">📚 ${v.src}</div>
+    </button>`).join('')}
+    <div style="padding:12px 14px;background:#1a1a2e;border-radius:10px;border:${s.hc_override?'1px solid #e8c547':'1px solid #2d2d4a'}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:${s.hc_override?'12px':'0'}">
+        ${toggle('hcOverrideToggle',s.hc_override,'toggleHCOverride()')}
+        <span style="font-size:12px;color:${s.hc_override?'#e8c547':'#6a6a8a'};font-weight:${s.hc_override?700:400}">I know my number — enter it manually</span>
+      </div>
+      ${s.hc_override?`<div class="input-wrap"><span class="input-pre">$</span><input type="number" value="${s.hc_custom}" step="50" oninput="state.hc_custom=Number(this.value);recalc()"><span class="input-suf">/mo</span></div>`:''}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;border-left:3px solid ${hcBkt.color}">
+    <div class="slabel">💰 What This Actually Costs You</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      ${[['Monthly Cost',fmtF(hcMo),hcBkt.color,'health insurance only'],['Annual Cost',fmtF(hcMo*12),hcBkt.color,'per year in retirement'],['Total over '+c.yrsToMed+' yrs',fmt(c.hcTotal),'#f87171','until Medicare at 65']].map(([label,value,color,sub])=>`
+      <div style="background:#1a1a2e;border-radius:10px;padding:14px 16px">
+        <div style="font-size:10px;color:#5a5a7a;margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">${label}</div>
+        <div style="font-size:20px;font-weight:800;color:${color};font-family:'DM Mono',monospace">${value}</div>
+        <div style="font-size:11px;color:#4a4a6a;margin-top:3px">${sub}</div>
+      </div>`).join('')}
+    </div>
+    <div style="padding:14px 16px;background:rgba(232,197,71,0.06);border:1px solid rgba(232,197,71,0.15);border-radius:10px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#e8c547;margin-bottom:8px">How this changes your spending picture</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        ${[['Monthly spend (entered)',fmtF(s.monthly_spend),'#f0f0f0'],['Monthly spend + healthcare',fmtF(s.monthly_spend+hcMo),'#e8c547'],['FIRE number (current)',fmt(c.effTarget),'#f0f0f0'],['HC adds to FIRE number','+ '+fmt(hcMo*12*25),'#f87171']].map(([label,value,color])=>`
+        <div style="background:#1a1a2e;border-radius:8px;padding:10px 12px">
+          <div style="font-size:10px;color:#5a5a7a;margin-bottom:3px">${label}</div>
+          <div style="font-size:15px;font-weight:800;color:${color};font-family:'DM Mono',monospace">${value}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    ${infobox('#4ecdc4',`<strong>Key insight:</strong> Healthcare ends at 65 when Medicare begins — it's temporary. You need ${c.yrsToMed} years × ${fmtF(hcMo*12)}/yr = <strong>${fmt(c.hcTotal)} total</strong>. You don't need to 25× this. Consider keeping this amount in a conservative, separate account.`)}
+  </div>
+  <div style="padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;font-size:11px;color:#4a4a6a;line-height:1.6">📚 Sources: KFF Health Insurance Marketplace Calculator, Healthcare.gov 2024, eHealth Insurance Cost Report 2024. Estimates vary by state, age, and plan tier.</div>`;
+}
+
+function renderWithdrawal(c){
+  const s=state;
+  const hcBkt=HC[s.hc_bucket]||HC.market;
+  const hcMo=s.hc_override?s.hc_custom:(hcBkt[s.family_size]||hcBkt.family);
+  const gross=c.effTarget*(s.withdrawal_rate/100);
+  const net=gross*(1-c.taxRate);
+  const mo=net/12;
+  return `
+  <div style="margin-bottom:16px;padding:12px 16px;background:rgba(232,197,71,0.08);border:1px solid rgba(232,197,71,0.2);border-radius:10px;font-size:13px;color:#d4b84a">
+    💡 The 4% rule means withdrawing 4% of your portfolio annually. Historically ~95% success rate over 30 years. Taxes vary by which accounts you pull from — these use estimated blended rates.
+  </div>
+  <div class="statgrid g3" style="margin-bottom:16px">
+    ${statbox('At FIRE Target',fmt(c.effTarget),'','#e8c547')}
+    ${statbox('Annual at '+s.withdrawal_rate+'%',fmt(gross),'','#4ecdc4')}
+    ${statbox('Monthly (after tax)',fmt(mo),'~'+(c.taxRate*100).toFixed(0)+'% blended rate','#a78bfa')}
+  </div>
+  <div class="card" style="margin-bottom:16px;border-left:3px solid #f87171">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f87171;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(248,113,113,0.2)">Healthcare — Separate Line Item</div>
+    <div style="font-size:12px;color:#6a6a8a;margin-bottom:14px;line-height:1.6">Your insurance cost before Medicare comes out of your monthly withdrawal. Shown separately so you can see exactly what you're left with.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      ${[['HC Scenario',s.hc_bucket.charAt(0).toUpperCase()+s.hc_bucket.slice(1),'#f87171'],['HC Monthly Cost',fmtF(hcMo),'#f87171'],['Monthly After HC',fmtF(mo-hcMo),mo-hcMo>0?'#6ee7b7':'#f87171'],['After 65 (Medicare)',fmtF(mo),'#6ee7b7']].map(([label,value,color])=>`
+      <div style="background:#1a1a2e;border-radius:8px;padding:10px 12px">
+        <div style="font-size:10px;color:#5a5a7a;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">${label}</div>
+        <div style="font-size:14px;font-weight:800;color:${color};font-family:'DM Mono',monospace">${value}</div>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:#5a5a7a;line-height:1.6">Once you hit 65 and Medicare kicks in, this cost largely disappears. Configure your scenario in the <strong style="color:#f87171;cursor:pointer" onclick="setTab(2)">Healthcare tab</strong>.</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="slabel">Withdrawal Rate Scenarios at Your FIRE Target</div>
+    <table class="wd-table">
+      <thead><tr><th>Rate</th><th>Annual Gross</th><th>Est. Tax</th><th>Annual Net</th><th>Monthly Net</th></tr></thead>
+      <tbody>
+        ${c.wdData.map(row=>`<tr class="${row.rate===s.withdrawal_rate+'%'?'active-row':''}">
+          <td style="color:${row.rate===s.withdrawal_rate+'%'?'#e8c547':'#f0f0f0'};font-weight:800">${row.rate}</td>
+          <td style="color:#4ecdc4">${fmtF(row.gross)}</td>
+          <td style="color:#6a6a8a">${(c.taxRate*100).toFixed(0)}%</td>
+          <td style="color:#a78bfa">${fmtF(row.net)}</td>
+          <td style="color:#6ee7b7;font-weight:700">${fmtF(row.monthly)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:11px;color:#4a4a6a;line-height:1.6">Tax rates are estimated blended rates. Roth = 0%, brokerage = capital gains, traditional = ordinary income. Withdrawal sequencing is one of the most valuable things a CFP helps optimize.</div>
+  </div>
+  <div class="card">
+    <div class="slabel">Gross vs. Net by Withdrawal Rate</div>
+    <canvas id="wdChart" height="80"></canvas>
+  </div>`;
+}
+
+function renderCheatSheet(){
+  const sections=[
+    {emoji:'🏦',title:'Account Types — What You Actually Have',color:'#4ecdc4',items:[
+      {label:'Brokerage (Taxable)',tag:'Anytime',tc:'#4ecdc4',body:'Money invested after taxes. Withdraw anytime — no penalties, no age restrictions. Short-term gains (held <1yr) taxed as ordinary income; long-term (held 1+yr) at lower capital gains rate. Your bridge before 59½.'},
+      {label:'Cash / Savings',tag:'Fully Liquid',tc:'#67e8f9',body:'Fully liquid. FDIC insured up to $250k per bank. HYSAs paying 4–5%. Your emergency fund — 3–6 months of expenses. Not a growth vehicle, just your safety net.'},
+      {label:'401(k) Traditional',tag:'Age 59½+',tc:'#a78bfa',body:'Pre-tax contributions — you owe ordinary income tax on the way out. 10% penalty before 59½ (with exceptions). Required Minimum Distributions start at age 73.'},
+      {label:'Roth IRA',tag:'Most Flexible',tc:'#c084fc',body:'After-tax contributions — growth and withdrawals are 100% tax-free. Contributions (not earnings) can be withdrawn anytime penalty-free. No RMDs ever. One of the most powerful accounts you can have.'},
+      {label:'Traditional IRA',tag:'Age 59½+',tc:'#818cf8',body:'Like a 401k — pre-tax, taxed on withdrawal. Backdoor Roth: contribute here then convert to Roth if income is too high for direct contributions.'},
+      {label:'HSA',tag:'Triple Tax',tc:'#6ee7b7',body:'Most tax-efficient account that exists. Pre-tax in, tax-free growth, tax-free out for medical. After 65, use for anything (pay ordinary income tax). Pro move: pay medical out of pocket now, let HSA compound, reimburse yourself decades later.'},
+      {label:'529 (Kids Education)',tag:'Restricted',tc:'#fbbf24',body:'Tax-free growth for qualified education. As of 2024, after 15 years you can roll up to $35k into a Roth IRA for the beneficiary. Non-education withdrawals = tax + 10% penalty on earnings only.'},
+      {label:'Life Ins. Cash Value',tag:'Accessible',tc:'#f97316',body:'If you convert term to permanent, cash value builds and can be borrowed against — no credit check, no approval, no required repayment. Interest goes to the insurer. No federal cap like the 401k\'s $50k loan limit.'},
+    ]},
+    {emoji:'💸',title:'Withdrawal Sequencing — The Order Matters',color:'#e8c547',items:[
+      {label:'Why order matters',tag:'Key Concept',tc:'#e8c547',body:'Pulling from the wrong accounts costs tens of thousands in unnecessary taxes. Goal: manage taxable income each year — stay in lower brackets, minimize lifetime taxes paid.'},
+      {label:'Recommended order',tag:'The Strategy',tc:'#e8c547',body:'1️⃣ RMDs (no choice). 2️⃣ Taxable brokerage (long-term gains taxed lower). 3️⃣ Traditional/pre-tax (fill lower brackets). 4️⃣ Roth last — grows tax-free forever.'},
+      {label:'Roth = 0% withdrawal',tag:'Tax-Free',tc:'#c084fc',body:'Roth withdrawals don\'t count as income. Doesn\'t push you into higher brackets, doesn\'t affect Medicare premiums, doesn\'t increase how much Social Security gets taxed.'},
+      {label:'Brokerage = cap gains rate',tag:'Lower Rate',tc:'#4ecdc4',body:'Gains held 1+ year taxed at 0%, 15%, or 20% — not ordinary income rate. Married couples can realize ~$94k in long-term gains at 0% if income is managed low enough.'},
+      {label:'Traditional = ordinary income',tag:'Higher Rate',tc:'#f87171',body:'Every dollar from 401k or traditional IRA taxed like a paycheck. Draw just enough to fill your current bracket, then pull the rest from Roth or brokerage.'},
+      {label:'Sequence of Returns Risk',tag:'The Big Risk',tc:'#f97316',body:'Retiring right before a crash is dangerous. Keep 1–2 years of expenses in cash so you never sell investments during a downturn.'},
+    ]},
+    {emoji:'🔥',title:'FIRE Concepts — Plain English',color:'#f97316',items:[
+      {label:'What is FIRE?',tag:'The Goal',tc:'#f97316',body:'Financial Independence, Retire Early. FI means investments generate enough passive income to cover expenses indefinitely — whether you work or not. The point is having the choice.'},
+      {label:'The 4% Rule',tag:'Safe Withdrawal',tc:'#e8c547',body:'Withdraw 4% annually → ~95% chance of not running out over 30 years (Trinity Study, 1998). Your FIRE number = annual expenses × 25. A rule of thumb, not a guarantee.'},
+      {label:'Why 25x?',tag:'The Math',tc:'#e8c547',body:'1 ÷ 4% = 25. With 25x annual spending invested, withdrawing 4%/yr sustains the portfolio based on historical returns. Targeting 40+ year retirement? Use 3–3.5% → 28–33x expenses.'},
+      {label:'Lean / Fat / Coast FIRE',tag:'Flavors',tc:'#6ee7b7',body:'Lean FIRE = tight budget (~$40k/yr). Fat FIRE = generous lifestyle ($150k+/yr). Barista FIRE = FI but still doing part-time work. Coast FIRE = saved enough to stop contributing and still hit goal by 65.'},
+      {label:'Backdoor Roth IRA',tag:'High Income',tc:'#c084fc',body:'Income too high for direct Roth? Contribute to a non-deductible Traditional IRA and immediately convert to Roth. Legal at any income level.'},
+      {label:'Variable Income Planning',tag:'Your Situation',tc:'#4ecdc4',body:'When income varies (bonuses, RSUs, comp), model contributions conservatively using base salary only. Variable comp is a boost when it comes.'},
+    ]},
+    {emoji:'📋',title:'Life Insurance — What to Know',color:'#a78bfa',items:[
+      {label:'Term vs. Permanent',tag:'Key Diff',tc:'#a78bfa',body:'Term = pure death benefit for a fixed period. No cash value. Cheaper. Permanent = death benefit that never expires + cash value that grows over time.'},
+      {label:'Conversion Window',tag:'Important',tc:'#f87171',body:'Many term policies can be converted to permanent before a deadline (often year 10) without a new medical exam. Cash value starts from zero on conversion date.'},
+      {label:'Conversion Credit',tag:'Year 1–5 Bonus',tc:'#e8c547',body:'Many insurers offer a credit (often 125% of first-year premium) if you convert within the first 5 policy years. Real incentive to act early if you plan to convert.'},
+      {label:'Policy Loans',tag:'How It Works',tc:'#6ee7b7',body:'Borrow against cash value — no credit check, no approval, no repayment schedule required. Interest accrues to the insurer. No federal borrowing cap unlike 401k\'s $50k limit.'},
+      {label:'Policy Loan Risk',tag:'Watch Out',tc:'#f87171',body:'Unmanaged interest compounds. If the loan grows larger than your cash value, the policy lapses — entire loan balance becomes taxable income immediately.'},
+      {label:'Real Reasons to Convert',tag:'Not Just Loans',tc:'#a78bfa',body:'Lock in insurability permanently while healthy. Permanent death benefit for estate/legacy planning. Tax-deferred cash value growth as supplemental savings.'},
+    ]},
+    {emoji:'📏',title:'Key Rules & Limits to Know',color:'#6ee7b7',items:[
+      {label:'401(k) Loan Cap',tag:'$50k Federal',tc:'#f87171',body:'Borrow the lesser of $50,000 or 50% of vested balance. Repaid with after-tax dollars that get taxed again at withdrawal.'},
+      {label:'401(k) Contribution Limit',tag:'$23,000 (2024)',tc:'#a78bfa',body:'$23,000/year employee contribution ($30,500 if 50+). Always contribute enough to capture the full employer match — it\'s an instant 50–100% return.'},
+      {label:'Roth IRA Income Limit',tag:'Phases Out',tc:'#c084fc',body:'Direct contributions phase out at $146k–$161k single / $230k–$240k married (2024). Above that: use the Backdoor Roth strategy.'},
+      {label:'Penalty-Free Age',tag:'59½',tc:'#e8c547',body:'Most retirement accounts allow penalty-free withdrawals at 59½. Before that: 10% penalty plus income tax (with some exceptions).'},
+      {label:'RMD Start Age',tag:'73',tc:'#f97316',body:'Required Minimum Distributions from traditional 401ks and IRAs begin at 73. Roth IRAs have NO RMDs — they grow tax-free your entire life.'},
+      {label:'HSA Contribution Limit',tag:'$8,300 Family',tc:'#6ee7b7',body:'$4,150 individual / $8,300 family (2024). Must be enrolled in a High Deductible Health Plan. Unused funds roll over forever — no use-it-or-lose-it.'},
+    ]},
+  ];
+  return sections.map(section=>`
+  <div class="card cheat-section" style="border-left-color:${section.color};margin-bottom:20px">
+    <div class="cheat-header">
+      <span style="font-size:18px">${section.emoji}</span>
+      <span style="font-size:14px;font-weight:800;color:${section.color}">${section.title}</span>
+    </div>
+    <div class="cheat-grid">
+      ${section.items.map(item=>`
+      <div class="cheat-item">
+        <div class="cheat-item-head">
+          <div class="cheat-item-label">${item.label}</div>
+          <div class="cheat-tag" style="color:${item.tc};background:${item.tc}18;border:1px solid ${item.tc}40">${item.tag}</div>
+        </div>
+        <div class="cheat-body">${item.body}</div>
+      </div>`).join('')}
+    </div>
+  </div>`).join('')+`<div style="padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;font-size:11px;color:#4a4a6a;text-align:center">Your plain-English reference — not a substitute for a CPA or CFP for your specific situation.</div>`;
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────
+function setTab(i){
+  activeTab=i;
+  document.querySelectorAll('.tab-btn').forEach((btn,idx)=>{
+    btn.className='tab-btn';
+    if(idx===i) btn.className='tab-btn '+(idx<2?'active-pic':'active-deep');
+  });
+  renderCurrentTab();
+}
+
+function renderCurrentTab(){
+  const c=calc();
+  document.getElementById('totalDisplay').textContent=fmt(c.totalAll);
+  const el=document.getElementById('tabContent');
+  if(activeTab===0) el.innerHTML=renderPortfolio(c);
+  else if(activeTab===1) el.innerHTML=renderFIRE(c);
+  else if(activeTab===2) el.innerHTML=renderHealthcare(c);
+  else if(activeTab===3) el.innerHTML=renderWithdrawal(c);
+  else if(activeTab===4) el.innerHTML=renderCheatSheet();
+
+  // Update savings rate display
+  document.getElementById('savingsRateDisplay').style.color=c.savingsColor;
+  document.getElementById('savingsRateDisplay').textContent=c.savingsRate+'%';
+  document.getElementById('savingsRateLabel').style.color=c.savingsColor;
+  document.getElementById('savingsRateLabel').textContent=c.savingsLabel;
+  document.getElementById('annualSpendDisplay').textContent=fmtF(state.monthly_spend*12);
+  document.getElementById('fireNumDisplay').textContent=fmt(state.monthly_spend*12*25);
+
+  if(activeTab===1) setTimeout(()=>buildGrowthChart(c),50);
+  if(activeTab===3) setTimeout(()=>buildWDChart(c),50);
+  if(showMath && document.getElementById('mathPanel')) document.getElementById('mathPanel').classList.add('open');
+}
+
+// ─── Charts ───────────────────────────────────────────────────────────────
+function buildGrowthChart(c){
+  const canvas=document.getElementById('growthChart');
+  if(!canvas)return;
+  if(growthChart){growthChart.destroy();growthChart=null;}
+  growthChart=new Chart(canvas,{
+    type:'line',
+    data:{
+      labels:c.growthData.map(d=>d.year),
+      datasets:[
+        {label:'Optimistic',data:c.growthData.map(d=>d.optimistic),borderColor:'#6ee7b7',backgroundColor:'rgba(110,231,183,0.1)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.4},
+        {label:'Base (8%)',data:c.growthData.map(d=>d.base),borderColor:'#e8c547',backgroundColor:'rgba(232,197,71,0.1)',borderWidth:2.5,pointRadius:0,fill:true,tension:0.4},
+        {label:'Conservative',data:c.growthData.map(d=>d.conservative),borderColor:'#f87171',backgroundColor:'rgba(248,113,113,0.1)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.4},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{labels:{color:'#8a8a8a',font:{size:12}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}},
+        annotation:{annotations:{fireLine:{type:'line',yMin:c.effTarget,yMax:c.effTarget,borderColor:'#e8c547',borderWidth:1,borderDash:[6,3],label:{content:'FIRE Target',enabled:true,color:'#e8c547',font:{size:11}}}}},
+      },
+      scales:{
+        x:{ticks:{color:'#5a5a7a',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#5a5a7a',font:{size:11},callback:v=>fmt(v)},grid:{color:'rgba(255,255,255,0.04)'}},
+      }
+    }
+  });
+}
+
+function buildWDChart(c){
+  const canvas=document.getElementById('wdChart');
+  if(!canvas)return;
+  if(wdChart){wdChart.destroy();wdChart=null;}
+  wdChart=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels:c.wdData.map(d=>d.rate),
+      datasets:[
+        {label:'Gross',data:c.wdData.map(d=>d.gross),backgroundColor:'rgba(78,205,196,0.6)',borderRadius:4},
+        {label:'Net (after tax)',data:c.wdData.map(d=>d.net),backgroundColor:'rgba(167,139,250,0.9)',borderRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{labels:{color:'#8a8a8a',font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmtF(ctx.raw)}`}}},
+      scales:{
+        x:{ticks:{color:'#5a5a7a'},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#5a5a7a',callback:v=>fmt(v)},grid:{color:'rgba(255,255,255,0.04)'}},
+      }
+    }
+  });
+}
+
+// ─── Event handlers ───────────────────────────────────────────────────────
+function recalc(){
+  // Read all inputs
+  ['age','salary','variable_comp','annual_contribution','traditional_401k','roth_ira','traditional_ira','hsa','taxable_brokerage','life_insurance_cv','taxable_cash','kids_529'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)state[id]=Number(el.value);
+  });
+  state.inflation_rate=Number(document.getElementById('inflation_rate').value);
+  state.withdrawal_rate=Number(document.getElementById('withdrawal_rate').value);
+  if(state.override_fire_target){const el=document.getElementById('fire_target');if(el)state.fire_target=Number(el.value);}
+  renderCurrentTab();
+  saveState();
+}
+
+function onSpendChange(){
+  const v=Number(document.getElementById('monthly_spend').value);
+  state.monthly_spend=v;
+  if(!state.override_fire_target) state.fire_target=Math.round(v*12*25/50000)*50000;
+  recalc();
+}
+
+function toggleOverride(){
+  state.override_fire_target=!state.override_fire_target;
+  const t=document.getElementById('overrideToggle');
+  if(t){t.style.background=state.override_fire_target?'#e8c547':'#2d2d4a';t.querySelector('.toggle-inner').style.left=state.override_fire_target?'16px':'2px';}
+  document.getElementById('overrideField').style.display=state.override_fire_target?'block':'none';
+  recalc();
+}
+
+function toggleColBaked(){
+  state.col_baked_in=!state.col_baked_in;
+  const t=document.getElementById('colBakedToggle');
+  if(t){t.style.background=state.col_baked_in?'#4ecdc4':'#2d2d4a';t.querySelector('.toggle-inner').style.left=state.col_baked_in?'16px':'2px';}
+  const w=document.getElementById('colBakedWrap');
+  if(w)w.querySelector('span').style.color=state.col_baked_in?'#4ecdc4':'#6a6a8a';
+  document.getElementById('colSelector').style.display=state.col_baked_in?'none':'block';
+  recalc();
+}
+
+function setCol(key){
+  state.col_tier=key;
+  document.querySelectorAll('.col-btn').forEach(b=>{b.classList.toggle('active',b.dataset.key===key);b.querySelector('.col-label').style.color=b.dataset.key===key?'#4ecdc4':'#8a8a8a';});
+  const c=calc();
+  const d=document.getElementById('colAdjustedDisplay');
+  if(d)d.textContent=`Adjusted spend: ${fmtF(state.monthly_spend*(c.colMult))}/mo → FIRE # ${fmt(state.monthly_spend*c.colMult*12*25)}`;
+  renderCurrentTab();
+  saveState();
+}
+
+function setReturn(key){
+  state.return_scenario=key;
+  document.querySelectorAll('.return-btn').forEach(b=>{b.classList.toggle('active',b.dataset.key===key);});
+  recalc();
+}
+
+function applyPreset(key){
+  state.bucket_preset=key;
+  const p=BUCKET_PRESETS[key];
+  if(p.ret!==null){state.bucket_ret_pct=p.ret;state.bucket_bro_pct=p.bro;state.bucket_liq_pct=p.liq;}
+  recalc();
+}
+
+function setFamily(key){state.family_size=key;recalc();}
+function setHCBucket(key){state.hc_bucket=key;state.hc_override=false;recalc();}
+function toggleHCOverride(){state.hc_override=!state.hc_override;recalc();}
+function toggleMath(){showMath=!showMath;const p=document.getElementById('mathPanel');const a=document.getElementById('mathArrow');if(p)p.classList.toggle('open',showMath);if(a)a.textContent=showMath?'▾':'▸';}
+function resetDefaults(){if(confirm('Reset to example defaults?')){localStorage.removeItem(STORAGE_KEY);location.reload();}}
+
+// ─── Email & Help ─────────────────────────────────────────────────────────
+function openHelpModal(){document.getElementById('helpModal').classList.add('open');}
+function closeHelpModal(){document.getElementById('helpModal').classList.remove('open');}
+
+function submitHelp(){
+  const name=document.getElementById('helpName').value;
+  const email=document.getElementById('helpEmail').value;
+  const msg=document.getElementById('helpMessage').value;
+  if(!msg.trim()){alert('Please enter a message.');return;}
+  // Formspree endpoint — replace YOUR_FORM_ID with your actual Formspree form ID
+  fetch('https://formspree.io/f/YOUR_FORM_ID',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,email,message:msg,_subject:'FIREstarter Help Request'})
+  }).then(()=>{
+    document.getElementById('helpModal').classList.remove('open');
+    alert('Message sent! We\'ll get back to you soon.');
+  }).catch(()=>alert('Sent! We\'ll follow up soon.'));
+}
+
+function closeEmailModal(){
+  document.getElementById('emailModal').classList.remove('open');
+  localStorage.setItem('fire_email_dismissed','1');
+  document.getElementById('emailStrip').style.display='flex';
+}
+
+function submitEmailModal(){
+  const email=document.getElementById('modalEmail').value;
+  if(!email||!email.includes('@')){alert('Please enter a valid email.');return;}
+  // Beehiiv or your email service — replace with your actual endpoint
+  fetch('https://formspree.io/f/YOUR_EMAIL_FORM_ID',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,source:'modal',_subject:'New FIREstarter Subscriber'})
+  }).catch(()=>{});
+  document.getElementById('emailModalContent').style.display='none';
+  document.getElementById('emailModalSuccess').style.display='block';
+  localStorage.setItem('fire_email_captured','1');
+}
+
+function submitEmailStrip(){
+  const email=document.getElementById('stripEmail').value;
+  if(!email||!email.includes('@')){alert('Please enter a valid email.');return;}
+  fetch('https://formspree.io/f/YOUR_EMAIL_FORM_ID',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,source:'strip',_subject:'New FIREstarter Subscriber'})
+  }).catch(()=>{});
+  document.getElementById('emailStrip').innerHTML='<div style="font-size:13px;color:#6ee7b7;font-weight:700;padding:4px 0">✓ You\'re in! We\'ll keep you posted. 🔥</div>';
+  localStorage.setItem('fire_email_captured','1');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+loadState();
+
+// Sync sidebar inputs from loaded state
+function syncSidebar(){
+  ['age','salary','variable_comp','annual_contribution','traditional_401k','roth_ira','traditional_ira','hsa','taxable_brokerage','life_insurance_cv','taxable_cash','kids_529'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.value=state[id];
+  });
+  document.getElementById('monthly_spend').value=state.monthly_spend;
+  document.getElementById('inflation_rate').value=state.inflation_rate;
+  document.getElementById('inflLabel').textContent=state.inflation_rate;
+  document.getElementById('withdrawal_rate').value=state.withdrawal_rate;
+  document.getElementById('wdRateLabel').textContent=state.withdrawal_rate;
+  document.querySelectorAll('.return-btn').forEach(b=>b.classList.toggle('active',b.dataset.key===state.return_scenario));
+  if(state.override_fire_target){
+    document.getElementById('overrideToggle').style.background='#e8c547';
+    document.getElementById('overrideToggle').querySelector('.toggle-inner').style.left='16px';
+    document.getElementById('overrideField').style.display='block';
+  }
+  if(!state.col_baked_in){
+    document.getElementById('colBakedToggle').style.background='#2d2d4a';
+    document.getElementById('colBakedToggle').querySelector('.toggle-inner').style.left='2px';
+    document.getElementById('colSelector').style.display='block';
+  }
+}
+
+syncSidebar();
+setTab(0);
+
+// Show email modal on first visit
+if(!localStorage.getItem('fire_email_dismissed')&&!localStorage.getItem('fire_email_captured')){
+  setTimeout(()=>document.getElementById('emailModal').classList.add('open'),2000);
+} else {
+  document.getElementById('emailStrip').style.display='flex';
+}
+</script>
+</body>
+</html>
