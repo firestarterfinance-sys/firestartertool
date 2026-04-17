@@ -1076,7 +1076,7 @@ function submitHelp(){
   const msg=document.getElementById('helpMessage').value;
   if(!msg.trim()){alert('Please enter a message.');return;}
   // Formspree endpoint — replace YOUR_FORM_ID with your actual Formspree form ID
-  fetch('https://formspree.io/f/YOUR_FORM_ID',{
+  fetch('https://formspree.io/f/xjgjwydl',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name,email,message:msg,_subject:'FIREstarter Help Request'})
@@ -1096,7 +1096,7 @@ function submitEmailModal(){
   const email=document.getElementById('modalEmail').value;
   if(!email||!email.includes('@')){alert('Please enter a valid email.');return;}
   // Beehiiv or your email service — replace with your actual endpoint
-  fetch('https://formspree.io/f/YOUR_EMAIL_FORM_ID',{
+  fetch('https://formspree.io/f/maqaoezz',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({email,source:'modal',_subject:'New FIREstarter Subscriber'})
@@ -1109,7 +1109,7 @@ function submitEmailModal(){
 function submitEmailStrip(){
   const email=document.getElementById('stripEmail').value;
   if(!email||!email.includes('@')){alert('Please enter a valid email.');return;}
-  fetch('https://formspree.io/f/YOUR_EMAIL_FORM_ID',{
+  fetch('https://formspree.io/f/maqaoezz',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({email,source:'strip',_subject:'New FIREstarter Subscriber'})
